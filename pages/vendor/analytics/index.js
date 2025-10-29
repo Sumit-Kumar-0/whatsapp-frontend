@@ -4,7 +4,7 @@ import Layout from '../../../components/Layout'
 const Index = () => {
     return (
         <Layout>
-            <div>Dashboard Vendor</div>
+            <div>Inbox analytics vendor</div>
         </Layout>
     )
 }

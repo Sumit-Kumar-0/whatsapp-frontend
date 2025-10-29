@@ -28,8 +28,6 @@ import {
   Step,
   StepLabel,
   FormControlLabel,
-  Checkbox,
-  FormGroup,
   Radio,
   RadioGroup,
   Snackbar,
