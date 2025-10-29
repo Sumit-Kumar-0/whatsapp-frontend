@@ -25,12 +25,17 @@ import { useRouter } from 'next/router';
 import { useSelector } from 'react-redux';
 import { useState, useEffect } from 'react';
 
+// Dashboard > Vendors > Subscriptions & Payments > Pages & Data Requests > Communication > Configuration > Compliance > Plans
+
 const menuItems = {
     admin: [
         { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
-        { text: 'Users', icon: <PeopleIcon />, path: '/admin/users' },
-        { text: 'Companies', icon: <BusinessIcon />, path: '/admin/companies' },
-        { text: 'Settings', icon: <SettingsIcon />, path: '/admin/settings' },
+        { text: 'Vendors', icon: <PeopleIcon />, path: '/admin/vendors' },
+        { text: 'Subscriptions', icon: <BusinessIcon />, path: '/admin/subscriptions' },
+        { text: 'Communication', icon: <SendIcon />, path: '/admin/communication' },
+        { text: 'Configuration', icon: <SettingsIcon />, path: '/admin/configuration' },
+        { text: 'Compliance', icon: <ApiIcon />, path: '/admin/compliance' },
+        { text: 'Plans', icon: <PaymentIcon />, path: '/admin/plans' },
     ],
 
     vendor: [
@@ -85,20 +90,43 @@ const Sidebar = ({ onItemClick }) => {
 
             {/* Menu Items */}
             <List>
-                {items.map((item) => (
-                    <ListItem key={item.text} disablePadding>
-                        <ListItemButton
-                            selected={router.pathname === item.path}
-                            onClick={() => handleNavigation(item.path)}
-                        >
-                            <ListItemIcon>
-                                {item.icon}
-                            </ListItemIcon>
-                            <ListItemText primary={item.text} />
-                        </ListItemButton>
-                    </ListItem>
-                ))}
+                {items.map((item) => {
+                    const isActive = router.pathname === item.path;
+
+                    return (
+                        <ListItem key={item.text} disablePadding>
+                            <ListItemButton
+                                selected={isActive}
+                                onClick={() => handleNavigation(item.path)}
+                                sx={{
+                                    '&.Mui-selected': {
+                                        backgroundColor: 'action.selected',
+                                        color: 'primary.main',
+                                        '& .MuiListItemIcon-root': {
+                                            color: 'primary.main',
+                                        },
+                                    },
+                                    '&:hover': {
+                                        backgroundColor: 'action.hover',
+                                    },
+                                }}
+                            >
+                                <ListItemIcon sx={{ color: isActive ? 'primary.main' : 'inherit' }}>
+                                    {item.icon}
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary={item.text}
+                                    primaryTypographyProps={{
+                                        color: isActive ? 'primary.main' : 'inherit',
+                                        fontWeight: isActive ? 'bold' : 'normal',
+                                    }}
+                                />
+                            </ListItemButton>
+                        </ListItem>
+                    );
+                })}
             </List>
+
         </Box>
     );
 };

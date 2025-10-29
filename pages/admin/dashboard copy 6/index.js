@@ -4,7 +4,7 @@ import Layout from '../../../components/Layout'
 const Index = () => {
   return (
     <Layout>
-      <div>admin dashboard</div>
+      <div>admin</div>
     </Layout>
   )
 }
