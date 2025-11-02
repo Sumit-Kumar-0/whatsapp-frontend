@@ -19,25 +19,10 @@ const drawerWidth = 240;
 const Layout = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useSelector((state) => state.auth);
   const router = useRouter();
-  const [isClient, setIsClient] = useState(false)
-
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  if (!isClient) {
-    return null
-  }
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const handleDrawerClose = () => {
     setIsClosing(true);
     setMobileOpen(false);
@@ -46,7 +31,6 @@ const Layout = ({ children }) => {
   const handleDrawerTransitionEnd = () => setIsClosing(false);
   const handleDrawerToggle = () => !isClosing && setMobileOpen(!mobileOpen);
 
-  if (!mounted) return null;
 
   // ✅ Determine which section this page belongs to
   const isAdminPage = router.pathname.startsWith('/admin');

@@ -1,233 +1,30 @@
-import { Chip, makeStyles, TextField, Typography, Checkbox, Tooltip } from '@material-ui/core';
-import { Autocomplete } from '@material-ui/lab';
-import React from 'react';
-import { MuiPickersUtilsProvider, DatePicker } from '@material-ui/pickers';
-import MomentUtils from '@date-io/moment';
-import moment from 'moment';
-import Icon from '@material-ui/core/Icon';
-import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined';
-
-const useStyles = makeStyles((theme) => ({
-    container: {
-        width: '100%',
-        padding: '0px',
-        position: 'relative',
-        marginBottom: '4px',
-    },
-    labelContainer: {
-        display: 'flex',
-        alignItems: 'center',
-        paddingBottom: '7px',
-    },
-    labelMain: {
-        fontSize: '12px',
-        fontWeight: '400',
-        marginRight: theme.spacing(0.5),
-    },
-    error: {
-        color: theme.palette.error.main,
-        marginTop: theme.spacing(0.2),
-        fontSize: '0.75rem',
-    },
-    noteIcon: (props) => ({
-        fontSize: '1rem',
-        color: props.noteColor || theme.palette.text.secondary,
-        marginLeft: theme.spacing(0.5),
-        cursor: 'pointer',
-        pointerEvents: 'auto',
-    }),
-    labelWithNote: {
-        display: 'flex',
-        alignItems: 'center',
-    },
-    numberInput: {
-        '& input[type=number]': {
-            MozAppearance: 'textfield',
-            appearance: 'textfield',
-        },
-        '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': {
-            WebkitAppearance: 'none',
-            margin: 0,
-        },
-    },
-    checkbox: {
-        padding: '4px 8px',
-    },
-    option: {
-        fontSize: '14px',
-        fontWeight: 400,
-        lineHeight: '1.5',
-        padding: '2px 0',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-        width: '100%',
-    },
-    compactOption: {
-        fontSize: '14px',
-        fontWeight: 400,
-        lineHeight: '1.5',
-        padding: '2px 0',
-        display: 'flex',
-        alignItems: 'center',
-        width: '100%',
-        overflow: 'hidden',
-    },
-    compactOptionCode: {
-        fontWeight: 500,
-        color: theme.palette.primary.main,
-        flexShrink: 0,
-        marginRight: '8px',
-    },
-    compactOptionDescription: {
-        color: theme.palette.text.secondary,
-        fontSize: '14px',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-        flex: 1,
-    },
-    tooltip: {
-        zIndex: theme.zIndex.tooltip + 1,
-        maxWidth: 300,
-    },
-    inputRoot: {
-        width: '100%',
-        '& .MuiOutlinedInput-root': {
-            height: '40px',
-            padding: '0',
-        },
-        '& .MuiOutlinedInput-input': {
-            height: '40px',
-            padding: '0 14px',
-            boxSizing: 'border-box',
-            fontSize: '14px',
-        },
-        '& .MuiOutlinedInput-adornedEnd': {
-            paddingRight: '0',
-            '& .MuiOutlinedInput-input': {
-                paddingRight: '0',
-            },
-        },
-        '& .MuiOutlinedInput-adornedStart': {
-            paddingLeft: '0',
-            '& .MuiOutlinedInput-input': {
-                paddingLeft: '0',
-            },
-        },
-        '& .MuiInputLabel-outlined': {
-            transform: 'translate(14px, 12px) scale(1)',
-        },
-        '& .MuiInputLabel-outlined.MuiInputLabel-shrink': {
-            transform: 'translate(14px, -6px) scale(0.75)',
-        },
-    },
-    textareaRoot: {
-        width: '100%',
-        '& .MuiOutlinedInput-root': {
-            padding: '0',
-            minHeight: '40px',
-        },
-        '& .MuiOutlinedInput-input': {
-            padding: '10px 14px',
-            boxSizing: 'border-box',
-            fontSize: '14px',
-            lineHeight: '1.5',
-        },
-        '& .MuiOutlinedInput-multiline': {
-            padding: '0',
-        },
-        '& .MuiInputLabel-outlined': {
-            transform: 'translate(14px, 12px) scale(1)',
-        },
-        '& .MuiInputLabel-outlined.MuiInputLabel-shrink': {
-            transform: 'translate(14px, -6px) scale(0.75)',
-        },
-    },
-    autocompleteRoot: {
-        width: '100%',
-        '& .MuiOutlinedInput-root': {
-            padding: '0 0 0 4px !important',
-            minHeight: '40px',
-            height: 'auto',
-        },
-        '& .MuiOutlinedInput-input': {
-            padding: '0 14px !important',
-            height: '40px',
-            boxSizing: 'border-box',
-        },
-        '& .MuiAutocomplete-endAdornment': {
-            right: '8px',
-            top: 'calc(50% - 12px)',
-        },
-        '& .MuiAutocomplete-tag': {
-            margin: '2px',
-            maxWidth: 'calc(100% - 6px)',
-        },
-        '& .MuiChip-root': {
-            height: '24px',
-        },
-        '& .MuiInputLabel-outlined': {
-            transform: 'translate(14px, 12px) scale(1)',
-        },
-        '& .MuiInputLabel-outlined.MuiInputLabel-shrink': {
-            transform: 'translate(14px, -6px) scale(0.75)',
-        },
-    },
-    datePickerRoot: {
-        width: '100%',
-        '& .MuiOutlinedInput-root': {
-            height: '40px',
-            padding: '0',
-        },
-        '& .MuiOutlinedInput-input': {
-            height: '40px',
-            padding: '0 14px',
-            boxSizing: 'border-box',
-            fontSize: '14px',
-        },
-        '& .MuiOutlinedInput-adornedEnd': {
-            paddingRight: '8px',
-        },
-        '& .MuiInputAdornment-root': {
-            marginLeft: '0',
-        },
-        '& .MuiInputLabel-outlined': {
-            transform: 'translate(14px, 12px) scale(1)',
-        },
-        '& .MuiInputLabel-outlined.MuiInputLabel-shrink': {
-            transform: 'translate(14px, -6px) scale(0.75)',
-        },
-    },
-    charCount: {
-        color: theme.palette.text.secondary,
-        marginTop: theme.spacing(0.2),
-        fontSize: '0.75rem',
-        textAlign: 'right',
-        paddingRight: '2px',
-    },
-    chip: {
-        maxWidth: '120px',
-        height: '24px',
-        '& .MuiChip-label': {
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            paddingLeft: '8px',
-            paddingRight: '8px',
-            fontSize: '13px',
-        },
-    },
-    disabledField: {
-        '& .MuiOutlinedInput-root': {
-            backgroundColor: '#f5f5f5',
-        },
-        '& .MuiOutlinedInput-input': {
-            color: '#666666',
-            WebkitTextFillColor: '#666666',
-        },
-    },
-}));
+import React, { useState } from 'react';
+import {
+    TextField,
+    Select,
+    MenuItem,
+    FormControl,
+    InputLabel,
+    Checkbox,
+    ListItemText,
+    OutlinedInput,
+    FormHelperText,
+    InputAdornment,
+    IconButton,
+    Typography,
+    Tooltip,
+    Chip,
+    Autocomplete,
+} from '@mui/material';
+import {
+    Visibility,
+    VisibilityOff,
+    InfoOutlined,
+    CalendarToday,
+} from '@mui/icons-material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 const CommonField = ({
     type = 'text',
@@ -244,352 +41,250 @@ const CommonField = ({
     number = false,
     minValue,
     maxValue,
-    getOptionLabel = null,
-    getOptionValue = null,
-    isOptionEqualToValue = null,
     disabled = false,
-    enter = true,
-    required = true,
+    requiredField = false,
     note = '',
-    InputLabelProps = false,
-    maxLength = type === 'textarea' ? 1000 : null,
+    maxLength,
     onlyText = false,
-    onInputChange = null,
-    inputValue = '',
-    filterOptions = null,
-    noOptionsText = 'No options',
-    loading = false,
     rows = 4,
     noteColor = '',
-    maxDecimalPlaces = 2,
+    showPasswordToggle = false,
     compactDisplay = false,
     autoHeight = false,
     minRows = 2,
     maxRows = 10,
+    ...props
 }) => {
-    const classes = useStyles({ noteColor });
+    const [showPassword, setShowPassword] = useState(false);
+    const [inputValue, setInputValue] = useState('');
 
-    const normalizedValue = multiple && (type === 'select' || type === 'searchSelect')
-        ? Array.isArray(value) ? value : value ? [value] : []
-        : value || ((type === 'select' || type === 'searchSelect') ? null : '');
-    const finalGetOptionLabel = getOptionLabel || ((option) => {
-        if (!option) return '';
-        if (typeof option === 'string') return option;
-        if (compactDisplay && option.Code && option.Description) {
-            return `${option.Code} - ${option.Description}`;
-        }
-        return option.attributeTypeDescription || '';
-    });
-    const isValidText = (text) => onlyText ? /^[a-zA-Z\s.,'"()-]*$/.test(text) : true;
-    const validateDecimalPlaces = (inputValue) => {
-        if (!inputValue || !inputValue.includes('.')) return true;
-        const decimalPart = inputValue.split('.')[1];
-        return decimalPart ? decimalPart.length <= maxDecimalPlaces : true;
-    };
-    const handleChange = (e, newValue, reason) => {
-        if (!multiple) {
-            changeHandler(e, newValue);
-            return;
-        }
-        if (options.length === 0) {
-            changeHandler(e, []);
-            return;
-        }
-        const selectAllOption = newValue?.find((opt) => opt?.isSelectAll);
-        const regularOptions = options.filter((opt) => !opt?.isSelectAll);
-        if (selectAllOption) {
-            const allSelected = normalizedValue?.length === regularOptions.length;
-            changeHandler(e, allSelected ? [] : regularOptions);
-        } else {
-            changeHandler(e, newValue?.filter((opt) => !opt?.isSelectAll));
-        }
-    };
-    const handleInputChange = (e) => {
-        const val = e.target.value;
-        const trimmedVal = val.trim();
-        if (type === 'text' && onlyText && !isValidText(val)) return;
-        if (maxLength && val.length > maxLength && !number) return;
+    const handleChange = (event) => {
+        const { name, value } = event.target;
+
         if (number) {
-            const numericVal = Number(trimmedVal);
-            if (
-                trimmedVal === '' ||
-                (!isNaN(numericVal) &&
-                    (minValue === undefined || numericVal >= minValue) &&
-                    (maxValue === undefined || numericVal <= maxValue) &&
-                    validateDecimalPlaces(val))
-            ) {
-                changeHandler(e);
+            if (value === '' || /^-?\d*\.?\d*$/.test(value)) {
+                changeHandler(event);
+            }
+        } else if (onlyText) {
+            if (/^[a-zA-Z\s]*$/.test(value)) {
+                changeHandler(event);
             }
         } else {
-            changeHandler(e);
+            changeHandler(event);
         }
     };
-    const handleDateChange = (date) => {
-        changeHandler({
+
+    const handleAutocompleteChange = (event, newValue) => {
+        const mockEvent = {
             target: {
                 name,
-                value: moment(date?._d).format('YYYY-MM-DD'),
-            },
-        });
-    };
-    const labelContent = (
-        <span className={InputLabelProps ? classes.labelContainer : classes.labelWithNote}>
-            {label} {required && <span style={{ color: 'red' }}>*</span>}
-            {note && (
-                <Tooltip
-                    title={note}
-                    placement="top"
-                    classes={{ tooltip: classes.tooltip }}
-                    disableFocusListener
-                    disableTouchListener
-                >
-                    <InfoOutlinedIcon className={classes.noteIcon} />
-                </Tooltip>
-            )}
-        </span>
-    );
-    const autocompleteOptions = multiple && options?.length > 0
-        ? [{ isSelectAll: true, attributeTypeDescription: 'Select All' }, ...options]
-        : options;
-    const currentLength = !number ? (normalizedValue || '').toString().length : 0;
-    const isLengthError = !number && maxLength && currentLength > maxLength;
-    const calculateRows = () => {
-        if (!autoHeight || type !== 'textarea') return rows;
-        const content = normalizedValue || '';
-        const lineCount = content.split('\n').length;
-        const estimatedRows = Math.max(lineCount, minRows);
-        return Math.min(estimatedRows, maxRows);
-    };
-    const truncateLabel = (label, maxLength = 12) => {
-        return label.length <= maxLength ? label : `${label.substring(0, maxLength - 3)}...`;
-    };
-    const getCurrentMonthFirstDate = () => {
-        const today = new Date();
-        return new Date(today.getFullYear(), today.getMonth(), 1);
-    };
-    const renderTags = (value, getTagProps) => {
-        const displayTags = value?.slice(0, 2) || [];
-        const remainingCount = (value?.length || 0) - 2;
-        return (
-            <>
-                {displayTags.map((option, index) => (
-                    <Chip
-                        size='small'
-                        key={index}
-                        color="primary"
-                        label={truncateLabel(finalGetOptionLabel(option))}
-                        className={classes.chip}
-                        {...getTagProps({ index })}
-                    />
-                ))}
-                {remainingCount > 0 && (
-                    <Chip
-                        size='small'
-                        color='default'
-                        label={`+${remainingCount}`}
-                        className={classes.chip}
-                    />
-                )}
-            </>
-        );
-    };
-    const renderOption = (option, { selected }) => {
-        if (multiple) {
-            if (option?.isSelectAll) {
-                const regularOptions = options.filter((opt) => !opt?.isSelectAll);
-                const allSelected = normalizedValue?.length === regularOptions.length;
-                return (
-                    <>
-                        <Checkbox
-                            className={classes.checkbox}
-                            checked={allSelected}
-                            indeterminate={normalizedValue?.length > 0 && !allSelected}
-                        />
-                        <Typography className={classes.option}>Select All</Typography>
-                    </>
-                );
+                value: newValue
             }
-            return (
-                <>
-                    <Checkbox
-                        className={classes.checkbox}
-                        checked={selected}
-                    />
-                    <Typography className={compactDisplay ? classes.compactOption : classes.option}>
-                        {compactDisplay && option.Code && option.Description ? (
-                            <>
-                                <span className={classes.compactOptionCode}>{option.Code}</span>
-                                <span className={classes.compactOptionDescription}>- {option.Description}</span>
-                            </>
-                        ) : (
-                            finalGetOptionLabel(option)
-                        )}
-                    </Typography>
-                </>
-            );
-        }
-        return (
-            <Typography className={compactDisplay ? classes.compactOption : classes.option}>
-                {compactDisplay && option.Code && option.Description ? (
-                    <>
-                        <span className={classes.compactOptionCode}>{option.Code}</span>
-                        <span className={classes.compactOptionDescription}>- {option.Description}</span>
-                    </>
-                ) : (
-                    finalGetOptionLabel(option)
-                )}
-            </Typography>
-        );
+        };
+        changeHandler(mockEvent);
     };
-    const renderInput = (params) => {
-        const hasValue = multiple ? normalizedValue?.length > 0 : normalizedValue;
-        return (
-            <TextField
-                {...params}
-                label={!InputLabelProps ? labelContent : undefined}
-                placeholder={!hasValue ? (placeholder || (type === 'searchSelect' ? 'Search...' : 'Select...')) : ''}
-                variant="outlined"
-                error={!!error}
-                InputLabelProps={InputLabelProps ? { shrink: true } : undefined}
-                InputProps={{
-                    ...params.InputProps,
-                    ...(type === 'searchSelect' && loading && {
-                        endAdornment: (
-                            <React.Fragment>
-                                {params.InputProps.endAdornment}
-                            </React.Fragment>
-                        ),
-                    }),
-                }}
-            />
-        );
+
+    const handleDateChange = (newValue) => {
+        const mockEvent = {
+            target: {
+                name,
+                value: newValue
+            }
+        };
+        changeHandler(mockEvent);
     };
-    if (type === 'select' || type === 'searchSelect') {
-        return (
-            <div className={classes.container}>
-                {InputLabelProps && labelContent}
-                <Autocomplete
-                    className={`${classes.autocompleteRoot} ${disabled ? classes.disabledField : ''}`}
-                    disabled={disabled}
-                    multiple={multiple}
-                    id={name}
-                    fullWidth
-                    options={autocompleteOptions || []}
-                    size="small"
-                    value={normalizedValue}
-                    disableCloseOnSelect={multiple}
-                    getOptionLabel={(opt) => {
-                        const label = finalGetOptionLabel(opt);
-                        return typeof label === 'string' ? label : '';
-                    }}
-                    getOptionSelected={
-                        isOptionEqualToValue ||
-                        ((option, value) => getOptionValue ? getOptionValue(option) === getOptionValue(value) : option === value)
-                    }
-                    renderTags={renderTags}
-                    onChange={handleChange}
-                    {...(type === 'searchSelect' && {
-                        onInputChange: onInputChange,
-                        inputValue: inputValue,
-                        filterOptions: filterOptions || ((options) => options),
-                        noOptionsText: noOptionsText,
-                        loading: loading
-                    })}
-                    renderOption={renderOption}
-                    renderInput={renderInput}
-                />
-                {error && (
-                    <Typography variant="body2" className={classes.error}>
-                        {error}
-                    </Typography>
-                )}
-            </div>
-        );
-    }
-    if (type === 'date') {
-        return (
-            <div className={classes.container}>
-                {InputLabelProps && labelContent}
-                <MuiPickersUtilsProvider utils={MomentUtils}>
-                    <DatePicker
-                        className={`${classes.datePickerRoot} ${disabled ? classes.disabledField : ''}`}
-                        InputProps={{
-                            readOnly: true,
-                            endAdornment: (
-                                <Icon
-                                    className="icon icon-calendar"
-                                    style={{
-                                        fontSize: 18,
-                                        marginRight: '4px',
-                                    }}
-                                />
-                            ),
+
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword);
+    };
+
+    const renderLabel = () => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {label}
+            {requiredField && <span style={{ color: 'red' }}>*</span>}
+            {note && (
+                <Tooltip title={note}>
+                    <InfoOutlined
+                        sx={{
+                            fontSize: '16px',
+                            color: noteColor || 'text.secondary',
+                            cursor: 'pointer'
                         }}
-                        label={!InputLabelProps ? labelContent : undefined}
-                        value={value ? new Date(value) : null}
-                        name={name}
-                        onChange={handleDateChange}
-                        format="DD-MM-YYYY"
-                        size="small"
-                        inputVariant="outlined"
-                        fullWidth
-                        error={!!error}
-                        disabled={disabled}
-                        minDate={minDate ? new Date(minDate) : getCurrentMonthFirstDate()}
-                        maxDate={maxDate ? new Date(maxDate) : undefined}
-                        placeholder={placeholder || 'Select date'}
-                        helperText=""
-                        InputLabelProps={InputLabelProps ? { shrink: true } : undefined}
                     />
-                </MuiPickersUtilsProvider>
-                {error && (
-                    <Typography variant="body2" className={classes.error}>
-                        {error}
-                    </Typography>
-                )}
-            </div>
-        );
-    }
-    return (
-        <div className={classes.container}>
-            {InputLabelProps && labelContent}
-            <TextField
-                className={`${type === 'number' || number ? classes.numberInput : ''} ${type === 'textarea' ? classes.textareaRoot : classes.inputRoot} ${disabled ? classes.disabledField : ''}`}
-                inputProps={{
-                    maxLength: !number ? maxLength : undefined,
-                }}
-                fullWidth
-                label={!InputLabelProps ? labelContent : undefined}
-                name={name}
-                type={type === 'textarea' ? undefined : number ? 'text' : type}
-                variant="outlined"
-                size="small"
-                id={name}
-                placeholder={placeholder || ''}
-                InputLabelProps={InputLabelProps ? { shrink: true } : undefined}
-                value={normalizedValue}
-                onChange={handleInputChange}
-                error={!!error || isLengthError}
-                disabled={disabled}
-                multiline={type === 'textarea'}
-                rows={type === 'textarea' ? calculateRows() : undefined}
-                {...(type === 'textarea' && autoHeight && {
-                    minRows: minRows,
-                    maxRows: maxRows,
-                })}
-            />
-            {error && (
-                <Typography variant="body2" className={classes.error}>
-                    {error}
-                </Typography>
-            )}
-            {!number && maxLength && type === 'textarea' && (
-                <Typography variant="body2" className={isLengthError ? classes.error : classes.charCount}>
-                    {currentLength}/{maxLength}
-                </Typography>
+                </Tooltip>
             )}
         </div>
     );
+
+    // Text, Number, Password, Textarea
+    if (['text', 'number', 'password', 'textarea', 'email'].includes(type)) {
+        return (
+            <TextField
+                size='small'
+                fullWidth
+                type={
+                    type === 'password' && showPassword ? 'text' :
+                        type === 'number' ? 'text' : type
+                }
+                label={renderLabel()}
+                name={name}
+                placeholder={placeholder}
+                value={value || ''}
+                onChange={handleChange}
+                error={!!error}
+                helperText={error}
+                disabled={disabled}
+                requiredField={requiredField}
+                multiline={type === 'textarea'}
+                rows={type === 'textarea' ? rows : undefined}
+                inputProps={{
+                    maxLength: maxLength,
+                    ...(type === 'number' && {
+                        inputMode: 'numeric',
+                        pattern: '[0-9]*'
+                    })
+                }}
+                InputProps={{
+                    endAdornment: type === 'password' && showPasswordToggle ? (
+                        <InputAdornment position="end">
+                            <IconButton onClick={togglePasswordVisibility} edge="end">
+                                {showPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                        </InputAdornment>
+                    ) : undefined,
+                }}
+                sx={{ mb: 2 }}
+                {...props}
+            />
+        );
+    }
+
+    // Select Dropdown
+    if (type === 'select') {
+        return (
+<FormControl
+  fullWidth
+  error={!!error}
+  disabled={disabled}
+  sx={{
+    mb: 2,
+    '& .MuiOutlinedInput-root': {
+      height: 40, // match textfield height
+    },
+    '& .MuiInputLabel-root': {
+      top: '-6px',
+    },
+    '& .MuiSelect-select': {
+      display: 'flex',
+      alignItems: 'center',
+      padding: '10px 14px',
+    },
+  }}
+>
+  <InputLabel>{renderLabel()}</InputLabel>
+  <Select
+    size="small"
+    name={name}
+    value={multiple ? (value || []) : (value || '')}
+    onChange={handleChange}
+    multiple={multiple}
+    input={<OutlinedInput label={renderLabel()} />}
+    renderValue={
+      multiple
+        ? (selected) => (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+              {selected.map((value) => {
+                const option = options.find((opt) =>
+                  typeof opt === 'object' ? opt.value === value : opt === value
+                );
+                const label = typeof option === 'object' ? option.label : option;
+                return <Chip key={value} label={label} size="small" />;
+              })}
+            </div>
+          )
+        : undefined
+    }
+  >
+    {options.map((option) => {
+      const optionValue = typeof option === 'object' ? option.value : option;
+      const optionLabel = typeof option === 'object' ? option.label : option;
+
+      return (
+        <MenuItem key={optionValue} value={optionValue}>
+          {multiple && (
+            <Checkbox
+              checked={Array.isArray(value) ? value.includes(optionValue) : false}
+            />
+          )}
+          <ListItemText primary={optionLabel} />
+        </MenuItem>
+      );
+    })}
+  </Select>
+  {error && <FormHelperText>{error}</FormHelperText>}
+</FormControl>
+        );
+    }
+
+    // Autocomplete
+    if (type === 'autocomplete') {
+        return (
+            <Autocomplete
+                multiple={multiple}
+                options={options}
+                value={value || (multiple ? [] : null)}
+                onChange={handleAutocompleteChange}
+                onInputChange={(event, newInputValue) => {
+                    setInputValue(newInputValue);
+                }}
+                getOptionLabel={(option) =>
+                    typeof option === 'object' ? option.label : option
+                }
+                isOptionEqualToValue={(option, value) =>
+                    typeof option === 'object' ? option.value === value?.value : option === value
+                }
+                renderInput={(params) => (
+                    <TextField
+                        {...params}
+                        label={renderLabel()}
+                        error={!!error}
+                        helperText={error}
+                        placeholder={placeholder}
+                    />
+                )}
+                disabled={disabled}
+                sx={{ mb: 2 }}
+                {...props}
+            />
+        );
+    }
+
+    // Date Picker
+    if (type === 'date') {
+        return (
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                    label={renderLabel()}
+                    value={value || null}
+                    onChange={handleDateChange}
+                    minDate={minDate}
+                    maxDate={maxDate}
+                    disabled={disabled}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            fullWidth
+                            error={!!error}
+                            helperText={error}
+                            sx={{ mb: 2 }}
+                        />
+                    )}
+                />
+            </LocalizationProvider>
+        );
+    }
+
+    return null;
 };
 
 export default CommonField;
