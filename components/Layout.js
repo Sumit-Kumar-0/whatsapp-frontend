@@ -24,6 +24,15 @@ const Layout = ({ children }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useSelector((state) => state.auth);
   const router = useRouter();
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  if (!isClient) {
+    return null
+  }
 
   useEffect(() => {
     setMounted(true);
@@ -114,7 +123,7 @@ const Layout = ({ children }) => {
               Sorry, You Do Not Have Access To This Page
             </Typography>
             <Button variant="contained" sx={{ mt: 2 }} onClick={() => router.push('/')}>
-                Go Back Home Page
+              Go Back Home Page
             </Button>
           </Box>
         ) : (

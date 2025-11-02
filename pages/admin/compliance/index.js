@@ -4,7 +4,7 @@ import Layout from '../../../components/Layout'
 const Index = () => {
   return (
     <Layout>
-      <div>admin</div>
+      <div>admin compliance</div>
     </Layout>
   )
 }
