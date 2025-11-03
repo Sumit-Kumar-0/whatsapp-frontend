@@ -1,9 +1,14 @@
-// services/vendorService.js
-import api from "./api";
+import api from "../api";
 
 // Get all vendors
 export const getVendors = async (filters = {}) => {
   const response = await api.get("/admin/vendors", { params: filters });
+  return response.data;
+};
+
+// Get vendor by ID
+export const getVendorById = async (vendorId) => {
+  const response = await api.get(`/admin/vendors/${vendorId}`);
   return response.data;
 };
 
@@ -27,6 +32,7 @@ export const deleteVendor = async (vendorId) => {
 
 const vendorService = {
   getVendors,
+  getVendorById,
   createVendor,
   updateVendor,
   deleteVendor

@@ -156,10 +156,21 @@ const CommonTable = ({
     }
 
     if (column.type === 'chip') {
+      // ✅ CORRECTED: Handle chipColor function properly
+      let chipColor = 'default';
+
+      if (typeof column.chipColor === 'function') {
+        // If it's a function, call it with the value
+        chipColor = column.chipColor(value) || 'default';
+      } else if (typeof column.chipColor === 'string') {
+        // If it's a string, use it directly
+        chipColor = column.chipColor;
+      }
+
       return (
         <Chip
           label={value || '-'}
-          color={column.chipColor || 'default'}
+          color={chipColor}
           size="small"
           variant="outlined"
         />
@@ -183,7 +194,7 @@ const CommonTable = ({
             variant="outlined"
             placeholder="Search..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value?.trimStart())}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -202,7 +213,7 @@ const CommonTable = ({
             <TableRow>
               {/* Select All */}
               {selectable && (
-                <TableCell padding="checkbox">
+                <TableCell padding="checkbox" sx={{ fontWeight: 'bold', backgroundColor: 'background.paper' }}>
                   <Checkbox
                     indeterminate={
                       selectedRows.length > 0 &&
@@ -222,24 +233,40 @@ const CommonTable = ({
                 <TableCell
                   key={column.field}
                   sortDirection={orderBy === column.field ? order : false}
-                  sx={{ minWidth: column.minWidth }}
+                  sx={{
+                    minWidth: column.minWidth,
+                    fontWeight: 'bold',
+                    backgroundColor: 'background.paper',
+                    fontSize: '0.9rem',
+                  }}
                 >
                   {column.sortable !== false ? (
                     <TableSortLabel
                       active={orderBy === column.field}
                       direction={orderBy === column.field ? order : 'asc'}
                       onClick={() => handleSort(column.field)}
+                      sx={{ fontWeight: 'bold' }}
                     >
                       {column.headerName}
                     </TableSortLabel>
                   ) : (
-                    column.headerName
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      {column.headerName}
+                    </Typography>
                   )}
                 </TableCell>
               ))}
 
               {(actions.length > 0 || selectable) && (
-                <TableCell align="center" sx={{ width: 100 }}>
+                <TableCell
+                  align="right"
+                  sx={{
+                    width: 100,
+                    fontWeight: 'bold',
+                    backgroundColor: 'background.paper',
+                    fontSize: '0.9rem',
+                  }}
+                >
                   Actions
                 </TableCell>
               )}
