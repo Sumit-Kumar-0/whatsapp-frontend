@@ -32,9 +32,9 @@ const menuItems = {
         { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
         { text: 'Vendors', icon: <PeopleIcon />, path: '/admin/vendors' },
         { text: 'Subscriptions', icon: <BusinessIcon />, path: '/admin/subscriptions' },
-        { text: 'Communication', icon: <SendIcon />, path: '/admin/communication' },
+        // { text: 'Communication', icon: <SendIcon />, path: '/admin/communication' },
         { text: 'Configuration', icon: <SettingsIcon />, path: '/admin/configuration' },
-        { text: 'Compliance', icon: <ApiIcon />, path: '/admin/compliance' },
+        // { text: 'Compliance', icon: <ApiIcon />, path: '/admin/compliance' },
         { text: 'Plans', icon: <PaymentIcon />, path: '/admin/plans' },
     ],
 
