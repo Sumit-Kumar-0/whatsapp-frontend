@@ -10,25 +10,25 @@ export const getConfigs = async (includeSensitive = false) => {
 
 // Get config by ID
 export const getConfigById = async (configId) => {
-  const response = await api.get(`/admin/configs/${configId}`);
+  const response = await api.get(`/admin/config/${configId}`);
   return response.data;
 };
 
 // Add config
 export const createConfig = async (configData) => {
-  const response = await api.post("/admin/configs", configData);
+  const response = await api.post("/admin/config", configData);
   return response.data;
 };
 
 // Update config
 export const updateConfig = async (configId, configData) => {
-  const response = await api.put(`/admin/configs/${configId}`, configData);
+  const response = await api.put(`/admin/config/${configId}`, configData);
   return response.data;
 };
 
 // Delete config
 export const deleteConfig = async (configId) => {
-  const response = await api.delete(`/admin/configs/${configId}`);
+  const response = await api.delete(`/admin/config/${configId}`);
   return response.data;
 };
 

@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import configService from "../../../services/admin/configService";
 
-// Async thunks - EXACT SAME PATTERN AS VENDOR
+// Async thunks
 export const fetchConfigs = createAsyncThunk(
   "configs/fetchConfigs",
   async (filters = {}, { rejectWithValue }) => {
