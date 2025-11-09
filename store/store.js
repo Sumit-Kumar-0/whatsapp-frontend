@@ -5,7 +5,8 @@ import facebookReducer from './slices/facebookSlice';
 import vendorReducer from './slices/admin/vendorSlice';
 import dashboardReducer from './slices/admin/dashboardSlice';
 import configReducer from './slices/admin/configSlice';
-import subscriptionPlanReducer from './slices/admin/subscriptionPlanSlice'; // ✅ ADD THIS
+import subscriptionPlanReducer from './slices/admin/subscriptionPlanSlice';
+import templateReducer from './slices/vendor/templateSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,7 +15,8 @@ export const store = configureStore({
     vendors: vendorReducer,
     dashboard: dashboardReducer,
     configs: configReducer,
-    subscriptionPlans: subscriptionPlanReducer, // ✅ ADD THIS
+    subscriptionPlans: subscriptionPlanReducer,
+    templates: templateReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
