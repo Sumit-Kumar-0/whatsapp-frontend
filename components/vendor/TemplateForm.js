@@ -48,6 +48,7 @@ const CATEGORY_OPTIONS = [
 ];
 
 const LANGUAGE_OPTIONS = [
+  { value: 'en', label: 'English' },
   { value: 'en_US', label: 'English (US)' },
   { value: 'en_GB', label: 'English (UK)' },
   { value: 'es_ES', label: 'Spanish' },

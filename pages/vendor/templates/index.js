@@ -343,11 +343,11 @@ const TemplatePage = () => {
             {params.value}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            {params.row.category}
+            {params.row?.category}
           </Typography>
-          {params.row.templateId && (
+          {params.row?.templateId && (
             <Typography variant="caption" color="primary" display="block">
-              ID: {params.row.templateId}
+              ID: {params.row?.templateId}
             </Typography>
           )}
         </Box>
@@ -393,7 +393,7 @@ const TemplatePage = () => {
       flex: 1,
       renderCell: (params) => (
         <Typography variant="body2">
-          {params.row.buttons?.length || 0} buttons
+          {params.row?.buttons?.length || 0} buttons
         </Typography>
       )
     },
