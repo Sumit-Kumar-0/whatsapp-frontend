@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Button, Box, Typography, Alert, CircularProgress } from '@mui/material';
-import { Facebook } from '@mui/icons-material';
+import { Button, Box, Typography, Alert, CircularProgress, Chip } from '@mui/material';
+import { Facebook, CheckCircle, Warning } from '@mui/icons-material';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -9,6 +9,8 @@ const EmbeddedSignup = ({ userId }) => {
   const [signupData, setSignupData] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [permissions, setPermissions] = useState(null);
+  const [checkingPermissions, setCheckingPermissions] = useState(false);
 
   // Step 1: SDK Load karo
   useEffect(() => {
@@ -18,10 +20,10 @@ const EmbeddedSignup = ({ userId }) => {
         appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID,
         autoLogAppEvents: true,
         xfbml: true,
-        version: 'v24.0'
+        version: 'v18.0'
       });
       setIsSDKLoaded(true);
-      console.log('Facebook SDK loaded>>>>>>>>>>');
+      console.log('Facebook SDK loaded>??????>>>>>>>>>');
     };
 
     // SDK script dynamically add karo
@@ -43,7 +45,7 @@ const EmbeddedSignup = ({ userId }) => {
       try {
         const data = JSON.parse(event.data);
         if (data.type === 'WA_EMBEDDED_SIGNUP') {
-          console.log('Embedded Signup Message:', data);
+          console.log('Embedded Signup Message???????? data frontend:', data);
           
           // Success case - customer ne flow complete kiya
           if (data.event === 'FINISH' || data.event === 'FINISH_ONLY_WABA' || data.event === 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING') {
@@ -73,10 +75,9 @@ const EmbeddedSignup = ({ userId }) => {
     };
   }, []);
 
-  // Backend ko data send karne ka function - FIXED
+  // Backend ko data send karne ka function
   const sendSignupDataToBackend = async (data) => {
     try {
-      // Determine the actual user ID
       const actualUserId = typeof userId === 'object' ? userId?.id : userId;
       
       const response = await fetch(`${API_URL}/facebook`, {
@@ -86,22 +87,26 @@ const EmbeddedSignup = ({ userId }) => {
         },
         body: JSON.stringify({
           wabaData: data,
-          userId: actualUserId, // FIXED: Use actualUserId
+          userId: actualUserId,
           action: 'signup_callback'
         }),
       });
       
       const result = await response.json();
       console.log('Backend response:>>>>>>>>>>>>>>>>>>>>>>', result);
+      
+      // Signup complete hone ke baad permissions check karo
+      if (result.success) {
+        checkPermissions();
+      }
     } catch (err) {
       console.error('Error sending data to backend:', err);
     }
   };
 
-  // Token code exchange karo backend pe - FIXED
+  // Token code exchange karo backend pe
   const exchangeTokenCode = async (code) => {
     try {
-      // Determine the actual user ID
       const actualUserId = typeof userId === 'object' ? userId?.id : userId;
       
       const response = await fetch(`${API_URL}/facebook`, {
@@ -111,7 +116,7 @@ const EmbeddedSignup = ({ userId }) => {
         },
         body: JSON.stringify({ 
           code,
-          userId: actualUserId, // FIXED: Add userId here
+          userId: actualUserId,
           action: 'exchange_token'
         }),
       });
@@ -121,13 +126,77 @@ const EmbeddedSignup = ({ userId }) => {
       
       if (result.success) {
         setError(null);
-        // Success - token exchange complete
+        setPermissions({
+          current: result.permissions || [],
+          missing: []
+        });
       } else {
         setError(result.error || 'Token exchange failed');
       }
     } catch (err) {
       console.error('Error exchanging token:', err);
       setError('Failed to exchange token');
+    }
+  };
+
+  // Permissions check karo
+  const checkPermissions = async () => {
+    try {
+      setCheckingPermissions(true);
+      const actualUserId = typeof userId === 'object' ? userId?.id : userId;
+      
+      const response = await fetch(`${API_URL}/facebook`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: actualUserId,
+          action: 'get_permissions'
+        }),
+      });
+      
+      const result = await response.json();
+      console.log('Permissions check result:', result);
+      
+      if (result.success) {
+        setPermissions({
+          current: result.current_permissions,
+          missing: result.missing_permissions,
+          hasAll: result.has_all_permissions
+        });
+      }
+    } catch (err) {
+      console.error('Error checking permissions:', err);
+    } finally {
+      setCheckingPermissions(false);
+    }
+  };
+
+  // Additional permissions request karo
+  const requestAdditionalPermissions = async () => {
+    try {
+      const actualUserId = typeof userId === 'object' ? userId?.id : userId;
+      
+      const response = await fetch(`${API_URL}/facebook/request-permissions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: actualUserId
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // User ko permission URL pe redirect karo
+        window.location.href = result.permission_url;
+      }
+    } catch (err) {
+      console.error('Error requesting permissions:', err);
+      setError('Failed to request additional permissions');
     }
   };
 
@@ -140,6 +209,7 @@ const EmbeddedSignup = ({ userId }) => {
 
     setLoading(true);
     setError(null);
+    setPermissions(null);
 
     const fbLoginCallback = (response) => {
       console.log('Facebook Login Response:', response);
@@ -156,18 +226,26 @@ const EmbeddedSignup = ({ userId }) => {
       }
     };
 
-    // Embedded Signup launch karo
+    // Embedded Signup launch karo with required permissions
     window.FB.login(fbLoginCallback, {
       config_id: process.env.NEXT_PUBLIC_FACEBOOK_CONFIG_ID,
       response_type: 'code',
       override_default_response_type: true,
+      scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging', // REQUIRED PERMISSIONS
       extras: {
         setup: {},
-        featureType: '', // Default flow
+        featureType: '',
         sessionInfoVersion: '3',
       }
     });
   };
+
+  // Required permissions list
+  const requiredPermissions = [
+    { name: 'business_management', description: 'Manage your business' },
+    { name: 'whatsapp_business_management', description: 'Manage WhatsApp Business' },
+    { name: 'whatsapp_business_messaging', description: 'Send and receive messages' }
+  ];
 
   return (
     <Box sx={{ p: 3, border: '1px solid #e0e0e0', borderRadius: 2, maxWidth: 500, mx: 'auto', mt: 3 }}>
@@ -185,6 +263,47 @@ const EmbeddedSignup = ({ userId }) => {
         </Alert>
       )}
       
+      {/* Permissions Status */}
+      {permissions && (
+        <Box sx={{ mb: 3, p: 2, bgcolor: permissions.hasAll ? '#e8f5e8' : '#fff3e0', borderRadius: 1 }}>
+          <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+            {permissions.hasAll ? '✅ All Permissions Granted' : '⚠️ Additional Permissions Needed'}
+          </Typography>
+          
+          <Box sx={{ mb: 2 }}>
+            {requiredPermissions.map(perm => {
+              const hasPermission = permissions.current.includes(perm.name);
+              const isMissing = permissions.missing.includes(perm.name);
+              
+              return (
+                <Box key={perm.name} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  {hasPermission ? (
+                    <CheckCircle sx={{ color: 'green', fontSize: 20, mr: 1 }} />
+                  ) : (
+                    <Warning sx={{ color: 'orange', fontSize: 20, mr: 1 }} />
+                  )}
+                  <Typography variant="body2">
+                    {perm.description}
+                    {isMissing && <span style={{ color: 'red', marginLeft: 8 }}>(Missing)</span>}
+                  </Typography>
+                </Box>
+              );
+            })}
+          </Box>
+          
+          {!permissions.hasAll && (
+            <Button
+              variant="outlined"
+              color="warning"
+              onClick={requestAdditionalPermissions}
+              size="small"
+            >
+              Grant Additional Permissions
+            </Button>
+          )}
+        </Box>
+      )}
+      
       {signupData ? (
         <Alert severity="success" sx={{ mb: 2 }}>
           <Typography variant="subtitle1" fontWeight="bold">
@@ -197,6 +316,17 @@ const EmbeddedSignup = ({ userId }) => {
               <div><strong>Business ID:</strong> {signupData.business_id}</div>
             )}
           </Box>
+          
+          {/* Permissions check button */}
+          <Button
+            variant="outlined"
+            onClick={checkPermissions}
+            disabled={checkingPermissions}
+            sx={{ mt: 1 }}
+            size="small"
+          >
+            {checkingPermissions ? 'Checking...' : 'Check Permissions'}
+          </Button>
         </Alert>
       ) : (
         <Button

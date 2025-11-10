@@ -39,7 +39,7 @@ import {
 } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import Layout from "../../../components/Layout";
-import CommonTable from "../../../components/common/CommonTable";
+import CommonTable from "../../../components/common/TemplateTable";
 import CommonPopup from "../../../components/common/CommonPopup";
 import TemplateForm from "../../../components/vendor/TemplateForm";
 import {
