@@ -43,6 +43,7 @@ const menuItems = {
         { text: 'Inbox', icon: <PeopleIcon />, path: '/vendor/inbox' },
         { text: 'Quick Send', icon: <SendIcon />, path: '/vendor/quick-send' },
         { text: 'Contacts', icon: <ContactsIcon />, path: '/vendor/contacts' },
+        { text: 'Groups', icon: <PeopleIcon />, path: '/vendor/groups' },
         { text: 'Campaigns', icon: <CampaignIcon />, path: '/vendor/campaigns' },
         { text: 'Templates', icon: <DescriptionIcon />, path: '/vendor/templates' },
         { text: 'Billing', icon: <PaymentIcon />, path: '/vendor/billing' },

@@ -7,6 +7,7 @@ import dashboardReducer from './slices/admin/dashboardSlice';
 import configReducer from './slices/admin/configSlice';
 import subscriptionPlanReducer from './slices/admin/subscriptionPlanSlice';
 import templateReducer from './slices/vendor/templateSlice';
+import contactReducer from './slices/vendor/contactSlice';
 
 export const store = configureStore({
   reducer: {
@@ -17,6 +18,7 @@ export const store = configureStore({
     configs: configReducer,
     subscriptionPlans: subscriptionPlanReducer,
     templates: templateReducer,
+    contacts: contactReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

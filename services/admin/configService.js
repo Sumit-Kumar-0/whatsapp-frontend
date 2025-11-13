@@ -28,6 +28,7 @@ export const updateConfig = async (configId, configData) => {
 
 // Delete config
 export const deleteConfig = async (configId) => {
+  console.log(configId, ">>>>>>>>>>> Deleting config");
   const response = await api.delete(`/admin/config/${configId}`);
   return response.data;
 };

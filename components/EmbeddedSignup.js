@@ -20,7 +20,7 @@ const EmbeddedSignup = ({ userId }) => {
         appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID,
         autoLogAppEvents: true,
         xfbml: true,
-        version: 'v18.0'
+        version: 'v24.0'
       });
       setIsSDKLoaded(true);
       console.log('Facebook SDK loaded>??????>>>>>>>>>');
