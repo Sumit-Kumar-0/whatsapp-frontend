@@ -92,6 +92,24 @@ export const deleteContact = createAsyncThunk(
   }
 );
 
+export const bulkDeleteContacts = createAsyncThunk(
+  "contacts/bulkDeleteContacts",
+  async (contactIds, { rejectWithValue }) => {
+    try {
+      const res = await contactService.bulkDeleteContacts(contactIds);
+      if (res && res.success) {
+        return contactIds;
+      } else {
+        return rejectWithValue(res.message || "Failed to delete contacts");
+      }
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Failed to delete contacts"
+      );
+    }
+  }
+);
+
 export const bulkAddContacts = createAsyncThunk(
   "contacts/bulkAddContacts",
   async (contacts, { rejectWithValue }) => {

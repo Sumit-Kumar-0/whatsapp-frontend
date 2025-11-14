@@ -30,6 +30,12 @@ export const deleteContact = async (contactId) => {
   return response.data;
 };
 
+// Bulk delete contacts
+export const bulkDeleteContacts = async (contactIds) => {
+  const response = await api.post("/vendor/contacts/bulk-delete", { contactIds });
+  return response.data;
+};
+
 // Bulk create contacts
 export const bulkCreateContacts = async (contacts) => {
   const response = await api.post("/vendor/contacts/bulk", { contacts });
@@ -42,7 +48,8 @@ const contactService = {
   createContact,
   updateContact,
   deleteContact,
-  bulkCreateContacts
+  bulkCreateContacts,
+  bulkDeleteContacts
 };
 
 export default contactService;

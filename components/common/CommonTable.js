@@ -2,7 +2,8 @@ import React, { useState, useMemo } from 'react';
 import {
   Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, TablePagination, TableSortLabel, Paper,
-  TextField, IconButton, Tooltip, Box, Typography, InputAdornment
+  TextField, IconButton, Tooltip, Box, Typography, InputAdornment,
+  Checkbox
 } from '@mui/material';
 import { Search, Edit, Delete, Visibility } from '@mui/icons-material';
 
@@ -14,6 +15,8 @@ const CommonTable = ({
   onView,
   searchable = true,
   pagination = true,
+  selectable = false,
+  onSelectionChange,
 }) => {
   const safeData = Array.isArray(data) ? data : [];
   const safeColumns = Array.isArray(columns) ? columns : [];
@@ -23,6 +26,7 @@ const CommonTable = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [orderBy, setOrderBy] = useState('');
   const [order, setOrder] = useState('asc');
+  const [selected, setSelected] = useState([]);
 
   // 🔍 Filter data
   const filteredData = useMemo(() => {
@@ -54,6 +58,44 @@ const CommonTable = ({
       ? sortedData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
       : sortedData
   ), [sortedData, page, rowsPerPage, pagination]);
+
+  // ✅ Selection handlers
+  const handleSelectAllClick = (event) => {
+    if (event.target.checked) {
+      const newSelected = paginatedData.map((row) => row._id || row.id);
+      setSelected(newSelected);
+      if (onSelectionChange) {
+        onSelectionChange(newSelected, paginatedData);
+      }
+      return;
+    }
+    setSelected([]);
+    if (onSelectionChange) {
+      onSelectionChange([], []);
+    }
+  };
+
+  const handleRowClick = (event, id) => {
+    const selectedIndex = selected.indexOf(id);
+    let newSelected = [];
+
+    if (selectedIndex === -1) {
+      newSelected = [...selected, id];
+    } else {
+      newSelected = selected.filter(item => item !== id);
+    }
+
+    setSelected(newSelected);
+    
+    if (onSelectionChange) {
+      const selectedRows = safeData.filter(row => 
+        newSelected.includes(row._id || row.id)
+      );
+      onSelectionChange(newSelected, selectedRows);
+    }
+  };
+
+  const isSelected = (id) => selected.indexOf(id) !== -1;
 
   // ✂️ Truncate text with tooltip
   const renderText = (value, max = 30) => {
@@ -97,6 +139,11 @@ const CommonTable = ({
               ),
             }}
           />
+          {selectable && selected.length > 0 && (
+            <Typography variant="body2" color="primary" sx={{ mt: 1 }}>
+              {selected.length} row(s) selected
+            </Typography>
+          )}
         </Box>
       )}
 
@@ -105,6 +152,18 @@ const CommonTable = ({
         <Table stickyHeader>
           <TableHead>
             <TableRow>
+              {/* Checkbox column header */}
+              {selectable && (
+                <TableCell padding="checkbox" sx={{ backgroundColor: 'background.paper' }}>
+                  <Checkbox
+                    color="primary"
+                    indeterminate={selected.length > 0 && selected.length < paginatedData.length}
+                    checked={paginatedData.length > 0 && selected.length === paginatedData.length}
+                    onChange={handleSelectAllClick}
+                  />
+                </TableCell>
+              )}
+              
               {safeColumns.map(col => (
                 <TableCell
                   key={col.field}
@@ -135,43 +194,66 @@ const CommonTable = ({
 
           <TableBody>
             {paginatedData.length ? (
-              paginatedData.map((row) => (
-                <TableRow key={row._id || row.id} hover>
-                  {safeColumns.map(col => (
-                    <TableCell key={col.field}>
-                      {renderText(row[col.field])}
+              paginatedData.map((row) => {
+                const rowId = row._id || row.id;
+                const isItemSelected = isSelected(rowId);
+
+                return (
+                  <TableRow 
+                    key={rowId} 
+                    hover
+                    role="checkbox"
+                    aria-checked={isItemSelected}
+                    selected={isItemSelected}
+                    sx={{ cursor: selectable ? 'pointer' : 'default' }}
+                  >
+                    {/* Checkbox column */}
+                    {selectable && (
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          color="primary"
+                          checked={isItemSelected}
+                          onClick={(event) => handleRowClick(event, rowId)}
+                        />
+                      </TableCell>
+                    )}
+
+                    {safeColumns.map(col => (
+                      <TableCell key={col.field}>
+                        {renderText(row[col.field])}
+                      </TableCell>
+                    ))}
+                    <TableCell align="center">
+                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                        {onView && (
+                          <Tooltip title="View">
+                            <IconButton size="small" color="info" onClick={() => onView(row)}>
+                              <Visibility />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        {onEdit && (
+                          <Tooltip title="Edit">
+                            <IconButton size="small" color="primary" onClick={() => onEdit(row)}>
+                              <Edit />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        {onDelete && (
+                          <Tooltip title="Delete">
+                            <IconButton size="small" color="error" onClick={() => onDelete(row)}>
+                              <Delete />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </Box>
                     </TableCell>
-                  ))}
-                  <TableCell align="center">
-                    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                      {onView && (
-                        <Tooltip title="View">
-                          <IconButton size="small" color="info" onClick={() => onView(row)}>
-                            <Visibility />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                      {onEdit && (
-                        <Tooltip title="Edit">
-                          <IconButton size="small" color="primary" onClick={() => onEdit(row)}>
-                            <Edit />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                      {onDelete && (
-                        <Tooltip title="Delete">
-                          <IconButton size="small" color="error" onClick={() => onDelete(row)}>
-                            <Delete />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              ))
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
-                <TableCell colSpan={safeColumns.length + 1} align="center">
+                <TableCell colSpan={safeColumns.length + (selectable ? 2 : 1)} align="center">
                   <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
                     No data found
                   </Typography>

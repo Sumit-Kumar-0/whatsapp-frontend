@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Box,
   Button,
@@ -11,12 +11,23 @@ import {
   DialogContent,
   DialogActions,
   Grid,
-  Chip,
   TextField,
   InputAdornment,
-  MenuItem
+  Card,
+  CardContent,
+  Chip,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
-import { Search, Phone, Email, Business } from "@mui/icons-material";
+import { 
+  Search, 
+  Download, 
+  Upload, 
+  Delete,
+  Edit,
+  Visibility,
+  Close
+} from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import Layout from "../../../components/Layout";
 import CommonTable from "../../../components/common/CommonTable";
@@ -27,8 +38,11 @@ import {
   addContact,
   updateContact,
   deleteContact,
+  bulkDeleteContacts,
+  bulkAddContacts,
 } from "../../../store/slices/vendor/contactSlice";
 import { Countries } from "../../../components/common/countries";
+import { downloadContactTemplate, parseExcelFile } from "../../../components/vendor/exportTemplate";
 
 // Constants
 const CATEGORY_OPTIONS = [
@@ -43,8 +57,14 @@ const ContactPage = () => {
   const { loading, list, error } = useSelector((state) => state.contacts);
 
   const [formOpen, setFormOpen] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
   const [editData, setEditData] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedContacts, setSelectedContacts] = useState([]);
+  const [uploadedData, setUploadedData] = useState([]);
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const fileInputRef = useRef(null);
+
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -77,6 +97,7 @@ const ContactPage = () => {
 
   const [errors, setErrors] = useState({});
 
+  // 🔹 Fetch Contacts
   const fetchContactsData = async () => {
     try {
       const filters = {};
@@ -90,6 +111,38 @@ const ContactPage = () => {
   useEffect(() => {
     fetchContactsData();
   }, [searchTerm]);
+
+  // 🔹 Selection handler
+  const handleSelectionChange = (selectedIds, selectedRows) => {
+    setSelectedContacts(selectedRows);
+  };
+
+  // 🔹 Bulk delete function
+  const handleBulkDelete = () => {
+    if (selectedContacts.length === 0) {
+      showErrorPopup("Please select contacts to delete");
+      return;
+    }
+
+    showConfirmPopup(
+      `Are you sure you want to delete ${selectedContacts.length} contact(s)? This action cannot be undone.`,
+      async () => {
+        setPopup(prev => ({ ...prev, loading: true }));
+        try {
+          const contactIds = selectedContacts.map(contact => contact._id);
+          await dispatch(bulkDeleteContacts(contactIds)).unwrap();
+          
+          setSelectedContacts([]);
+          closePopup();
+          showSuccessPopup(`${selectedContacts.length} contact(s) deleted successfully!`);
+          fetchContactsData();
+        } catch (error) {
+          closePopup();
+          showErrorPopup(error || "Failed to delete contacts");
+        }
+      }
+    );
+  };
 
   // 🔹 Common Popup Functions
   const showPopup = (title, message, type = "info", onConfirm = null) => {
@@ -322,80 +375,107 @@ const ContactPage = () => {
     setFormOpen(true);
   };
 
+  // 🔹 Download Template
+  const handleDownloadTemplate = () => {
+    downloadContactTemplate();
+    showSnackbar("Template downloaded successfully!", "success");
+  };
+
+  // 🔹 Handle File Upload
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Check if file is Excel
+    if (!file.name.match(/\.(xlsx|xls)$/)) {
+      showErrorPopup("Please upload a valid Excel file (.xlsx or .xls)");
+      return;
+    }
+
+    setUploadLoading(true);
+    try {
+      const data = await parseExcelFile(file);
+      
+      // Map Excel columns to our contact fields
+      const mappedContacts = data.map((row, index) => ({
+        firstName: row['First Name*'] || row['First Name'] || '',
+        lastName: row['Last Name'] || '',
+        countryCode: row['Country Code*'] || row['Country Code'] || '+91',
+        phoneNumber: String(row['Phone Number*'] || row['Phone Number'] || ''),
+        country: row['Country*'] || row['Country'] || 'India',
+        email: row['Email'] || '',
+        company: row['Company'] || '',
+        category: row['Category'] || 'customer',
+        tags: row['Tags'] ? row['Tags'].split(',').map(tag => tag.trim()) : [],
+        source: row['Source'] || '',
+        notes: row['Notes'] || ''
+      }));
+
+      setUploadedData(mappedContacts);
+      setUploadOpen(true);
+      showSnackbar(`Successfully parsed ${mappedContacts.length} contacts`, "success");
+    } catch (error) {
+      showErrorPopup(error.message || "Failed to parse Excel file");
+    } finally {
+      setUploadLoading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // 🔹 Process Bulk Upload
+  const handleBulkUpload = async () => {
+    if (uploadedData.length === 0) {
+      showErrorPopup("No contacts to upload");
+      return;
+    }
+
+    setUploadLoading(true);
+    try {
+      await dispatch(bulkAddContacts(uploadedData)).unwrap();
+      
+      setUploadOpen(false);
+      setUploadedData([]);
+      showSuccessPopup(`Successfully uploaded ${uploadedData.length} contacts!`);
+      fetchContactsData();
+    } catch (error) {
+      showErrorPopup(error || "Failed to upload contacts");
+    } finally {
+      setUploadLoading(false);
+    }
+  };
+
   // 🔹 Table Columns
   const columns = [
     { 
-      field: "name", 
-      headerName: "Name", 
-      flex: 1,
-      renderCell: (params) => (
-        <Typography>
-          {params.row.firstName} {params.row.lastName}
-        </Typography>
-      )
+      field: "firstName", 
+      headerName: "First Name", 
     },
     { 
-      field: "phone", 
+      field: "lastName", 
+      headerName: "Last Name", 
+    },
+    { 
+      field: "phoneNumber", 
       headerName: "Phone", 
-      flex: 1,
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Phone fontSize="small" />
-          <Typography>
-            {params.row.countryCode} {params.row.phoneNumber}
-          </Typography>
-        </Box>
-      )
     },
     { 
       field: "email", 
       headerName: "Email", 
-      flex: 1,
-      renderCell: (params) => (
-        params.row.email ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Email fontSize="small" />
-            <Typography>{params.row.email}</Typography>
-          </Box>
-        ) : (
-          <Typography color="textSecondary">-</Typography>
-        )
-      )
     },
     { 
       field: "company", 
       headerName: "Company", 
-      flex: 1,
-      renderCell: (params) => (
-        params.row.company ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Business fontSize="small" />
-            <Typography>{params.row.company}</Typography>
-          </Box>
-        ) : (
-          <Typography color="textSecondary">-</Typography>
-        )
-      )
     },
     { 
       field: "category", 
       headerName: "Category", 
-      type: "chip", 
-      flex: 1,
-      chipColor: (category) => {
-        switch (category) {
-          case 'customer': return 'success';
-          case 'lead': return 'warning';
-          case 'supplier': return 'info';
-          case 'other': return 'default';
-          default: return 'default';
-        }
-      }
     },
     { 
       field: "country", 
       headerName: "Country", 
-      flex: 1 
     }
   ];
 
@@ -409,14 +489,60 @@ const ContactPage = () => {
             justifyContent: "space-between",
             alignItems: "center",
             mb: 3,
+            flexWrap: 'wrap',
+            gap: 2
           }}
         >
-          <Typography variant="h5" fontWeight="bold">
-            Contact Management
-          </Typography>
-          <Button variant="contained" onClick={openAddForm}>
-            + Add Contact
-          </Button>
+          <Box>
+            <Typography variant="h5" fontWeight="bold">
+              Contact Management
+            </Typography>
+            {selectedContacts.length > 0 && (
+              <Typography variant="body2" color="primary" sx={{ mt: 0.5 }}>
+                {selectedContacts.length} contact(s) selected
+              </Typography>
+            )}
+          </Box>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            {/* Bulk Upload Buttons */}
+            <Button 
+              variant="outlined" 
+              startIcon={<Download />}
+              onClick={handleDownloadTemplate}
+            >
+              Download Template
+            </Button>
+            
+            <Button 
+              variant="outlined" 
+              component="label"
+              startIcon={<Upload />}
+              disabled={uploadLoading}
+            >
+              {uploadLoading ? 'Processing...' : 'Upload Excel'}
+              <input
+                type="file"
+                hidden
+                accept=".xlsx,.xls"
+                onChange={handleFileUpload}
+                ref={fileInputRef}
+              />
+            </Button>
+
+            {selectedContacts.length > 0 && (
+              <Button 
+                variant="outlined" 
+                color="error"
+                startIcon={<Delete />}
+                onClick={handleBulkDelete}
+              >
+                Delete Selected ({selectedContacts.length})
+              </Button>
+            )}
+            <Button variant="contained" onClick={openAddForm}>
+              + Add Contact
+            </Button>
+          </Box>
         </Box>
 
         {/* Search Bar */}
@@ -452,10 +578,12 @@ const ContactPage = () => {
           <CommonTable
             data={list || []}
             columns={columns}
-            actions={["view", "edit", "delete"]}
             onEdit={openEditForm}
             onDelete={handleDeleteContact}
             onView={handleViewContact}
+            selectable={true}
+            onSelectionChange={handleSelectionChange}
+            searchable={false} // We have our own search
           />
         )}
 
@@ -626,6 +754,95 @@ const ContactPage = () => {
           </DialogActions>
         </Dialog>
 
+        {/* Bulk Upload Dialog */}
+        <Dialog
+          open={uploadOpen}
+          onClose={() => !uploadLoading && setUploadOpen(false)}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Typography variant="h5" component="div" fontWeight="bold">
+                Bulk Upload Contacts
+              </Typography>
+              <IconButton 
+                onClick={() => setUploadOpen(false)} 
+                disabled={uploadLoading}
+              >
+                <Close />
+              </IconButton>
+            </Box>
+            <Typography variant="body2" color="text.secondary">
+              Review the contacts before uploading
+            </Typography>
+          </DialogTitle>
+
+          <DialogContent dividers>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body1" color="primary" fontWeight="bold">
+                Found {uploadedData.length} contacts to upload
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Showing first 5 contacts as preview
+              </Typography>
+            </Box>
+            
+            {uploadedData.slice(0, 5).map((contact, index) => (
+              <Card key={index} sx={{ mb: 1, bgcolor: 'background.default' }}>
+                <CardContent sx={{ py: 1, '&:last-child': { pb: 1 } }}>
+                  <Typography variant="body2" fontWeight="medium">
+                    {contact.firstName} {contact.lastName}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" display="block">
+                    {contact.countryCode} {contact.phoneNumber} • {contact.email}
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5, flexWrap: 'wrap' }}>
+                    {contact.company && (
+                      <Chip size="small" label={contact.company} variant="outlined" />
+                    )}
+                    <Chip size="small" label={contact.category} color="primary" />
+                    <Chip size="small" label={contact.country} variant="outlined" />
+                  </Box>
+                </CardContent>
+              </Card>
+            ))}
+            
+            {uploadedData.length > 5 && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                ... and {uploadedData.length - 5} more contacts
+              </Typography>
+            )}
+
+            {uploadedData.length > 0 && (
+              <Box sx={{ mt: 2, p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
+                <Typography variant="body2" color="info.dark">
+                  <strong>Note:</strong> Required fields are First Name, Country Code, Phone Number, and Country.
+                  Duplicate phone numbers will be skipped automatically.
+                </Typography>
+              </Box>
+            )}
+          </DialogContent>
+
+          <DialogActions sx={{ p: 3, gap: 1 }}>
+            <Button 
+              onClick={() => setUploadOpen(false)} 
+              disabled={uploadLoading}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              onClick={handleBulkUpload}
+              variant="contained"
+              disabled={uploadLoading || uploadedData.length === 0}
+              startIcon={uploadLoading ? <CircularProgress size={20} /> : <Upload />}
+            >
+              {uploadLoading ? 'Uploading...' : `Upload ${uploadedData.length} Contacts`}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
         {/* Common Popup */}
         <CommonPopup
           open={popup.open}
@@ -644,6 +861,7 @@ const ContactPage = () => {
           open={snackbar.open}
           autoHideDuration={3000}
           onClose={() => setSnackbar({ ...snackbar, open: false })}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         >
           <Alert
             onClose={() => setSnackbar({ ...snackbar, open: false })}
